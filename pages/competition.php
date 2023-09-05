@@ -13,8 +13,15 @@ $highligh_color = "#0096FF";
 <br>
 
 <?php
-if ($competition_status == "register") {
-
+if ($competition_status == "signup") {
+	include("pages/signup.php");
+}
+elseif ($competition_status == "groups") {
+	echo sprintf('
+<div class="col-120" style="text-align: center; margin-bottom: 10px;"><button class="my-button" onclick="open_signup_modal(%s, \'none\');">'.$dict["modify_signup_info"][$lang].'</button></div>', $competition_id);
+	include("pages/signup_modal.php");
+	include("pages/groups.php");
+	include("pages/knockouts.php");
 }
 elseif ($competition_status == "knockouts") {
 

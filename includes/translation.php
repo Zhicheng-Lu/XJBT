@@ -49,10 +49,21 @@ $dict["rank_explanation"] = array("CHI"=>"*每届基础积分：胜3分，平1�
 											*每届成绩附加分：小组赛2分，16强5分，8强10分，4强20分，亚军30分，冠军40分。第三届小组赛2分，败者组第1轮4分、第2轮8分、第3轮12分、第4轮16分、第5轮20分，败者组决赛25分，亚军30分，冠军40分。<br>
 											*积分及总积分：每届积分<i>p</i><sub><i>i</i></sub>为每届基础分+每届成绩附加分。总积分&Sigma;<i>p</i><sub><i>i</i></sub>为各届积分之和。<br>
 											*权重：最新一届权重<i>w</i><sub>0</sub>=1，往前依次减半，例如<i>w</i><sub>1</sub>=0.5。权重之和&Sigma;<i>w</i><sub><i>i</i></sub>不计算未参与比赛。<br>
-											*加权积分：&Sigma;(<i>w</i><sub><i>i</i></sub>&times;<i>p</i><sub><i>i</i></sub>)&div;(&Sigma;<i>w</i><sub><i>i</i></sub>+0.5)。新一届XJBT杯的分档奖基于该积分。",
+											*加权积分：&Sigma;(<i>w</i><sub><i>i</i></sub>&times;<i>p</i><sub><i>i</i></sub>)&div;(&Sigma;<i>w</i><sub><i>i</i></sub>+0.5)。新一届XJBT杯的分档将基于该积分。",
 									"ENG"=>"*Basic Points: 3 points for win, 1 point for draw (extra time, extra match and penalty shootout excluded). Eliminated rounds in 3rd Competition worth half of the points: 1.5 points for win, 0.5 point for draw.<br>
 											*Performance Bonus Points: 2 points for Group Stage, 5 points for Last 16, 10 points for Last 8, 20 points for Last 4, 30 points for Runner-up, 40 points for Champioin. As for 3rd Competition, 2 points for Group Stage, 4 points for Eliminated Round 1, 8 points for Round 2, 12 points for Round 3, 16 points for Round 4, 20 points for Round 5, 25 points for Eliminated Final, 30 points for Runner-up, 40 points for Champion.<br>
 											*Points and Total Points: points <i>p</i><sub><i>i</i></sub> for each competition is the sum of Basic Points and Performance Bonus Points. Total Points &Sigma;<i>p</i><sub><i>i</i></sub> is the sum of points for all competitions.<br>
 											*Weight: weight for the latest competition <i>w</i><sub>0</sub>=1, and the weight is halved each time for previous competitions, for example, <i>w</i><sub>1</sub>=0.5. Sum of weights does not include skipped competition.<br>
 											*Weighted Points: &Sigma;(<i>w</i><sub><i>i</i></sub>&times;<i>p</i><sub><i>i</i></sub>)&div;(&Sigma;<i>w</i><sub><i>i</i></sub>+0.5). The Weighted Points will be used for pot allocation of new competition.");
+
+$dict["signup"] = array("CHI"=>"报名", "ENG"=>"Sign Up");
+$dict["confirm_modify"] = array("CHI"=>"确认修改", "ENG"=>"Confirm");
+$dict["withdraw"] = array("CHI"=>"取消报名", "ENG"=>"Withdraw");
+
+$dict["group_stage"] = array("CHI"=>"小组赛阶段", "ENG"=>"Group Stage");
+$dict["knockouts_stage"] = array("CHI"=>"淘汰赛阶段", "ENG"=>"Knockouts Stage");
+$dict["modify_signup_info"] = array("CHI"=>"修改资料", "ENG"=>"Modify Info");
+$dict["advanced"] = array("CHI"=>"晋级", "ENG"=>"Adv");
+$dict["winners_group"] = array("CHI"=>"胜者组", "ENG"=>"WG");
+$dict["eliminated_group"] = array("CHI"=>"败者组", "ENG"=>"EG");
 ?>

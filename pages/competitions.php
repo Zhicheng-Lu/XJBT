@@ -16,23 +16,41 @@
             <tr>
             	<td style="text-align: left; text-decoration: underline; cursor: pointer;"><a style="color: black;" href="index.php?tab=home&lang=%s&competition_id=%s&uid=%s">%s</a></td>', $lang, $row1["competition_id"], $uid, $text);
 
-            	$sql2 = sprintf('SELECT P.player_name FROM matches AS M LEFT JOIN players AS P ON M.player1_id=P.player_id WHERE M.competition_id=%s AND stage="champion"', $row1["competition_id"]);
-            	$results2 = $conn->query($sql2);
-            	$flag = FALSE;
-            	while ($row2 = $results2->fetch_assoc()) {
-            		$flag = TRUE;
+                // close competition
+            	if ($row1["competition_status"] == "closed") {
+            		$sql2 = sprintf('SELECT P.player_name FROM matches AS M LEFT JOIN players AS P ON M.player1_id=P.player_id WHERE M.competition_id=%s AND stage="champion"', $row1["competition_id"]);
+	            	$results2 = $conn->query($sql2);
+	            	$flag = FALSE;
+	            	while ($row2 = $results2->fetch_assoc()) {
+	            		$flag = TRUE;
+	            		echo sprintf('
+	            <td style="text-align: center;">%s</td>', $row2["player_name"]);
+	            	}
+	            	if (!$flag) {
+	            		echo '
+	            <td style="text-align: center;" colspan="2">-</td>';
+	            	}
+	            	else {
+	            		$performance = get_performance($conn, $row1["competition_id"], $uid, $lang);
+	            		echo sprintf('
+	            <td style="text-align: center;">%s</td>', $performance);
+	            	}
+            	}
+            	// ongoing competition
+            	else if ($row1["competition_status"] == "signup") {
             		echo sprintf('
-            	<td style="text-align: center;">%s</td>', $row2["player_name"]);
+            	<td style="text-align: center;" colspan="2"><i class="fa fa-plus-circle" style="cursor: pointer;" onclick="open_signup_modal(%s, \'none\')"></i></td>', $row1["competition_id"]);
             	}
-            	if (!$flag) {
-            		echo '
-            	<td style="text-align: center;" colspan="2">-</td>';
-            	}
-            	else {
-            		$performance = get_performance($conn, $row1["competition_id"], $uid, $lang);
+            	else if ($row1["competition_status"] == "groups") {
             		echo sprintf('
-            	<td style="text-align: center;">%s</td>', $performance);
+            	<td style="text-align: center;" colspan="2">%s</td>', $dict["group_stage"][$lang]);
             	}
+            	else if ($row1["competition_status"] == "knockouts") {
+            		echo sprintf('
+            	<td style="text-align: center;" colspan="2">%s</td>', $dict["knockouts_stage"][$lang]);
+            	}
+
+            	
 
             	echo '
             </tr>';
@@ -42,7 +60,11 @@
 	</div>
 </div>
 
+
+
 <?php
+include("pages/signup_modal.php");
+
 function get_performance($conn, $competition_id, $uid, $lang) {
 	if ($uid == 0 || $competition_id == 4) return "-";
 

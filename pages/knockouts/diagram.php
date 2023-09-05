@@ -28,16 +28,17 @@
 
         $teams = array();
         for ($i = 0; $i < $num_teams; $i++) {
-            $teams[$i] = array("id"=>"", "name"=>"", "score"=>"", "p_score"=>"");
+            $teams[$i] = array("id"=>"", "name"=>"", "group_alias"=>"", "user_id"=>"", "score"=>"", "p_score"=>"");
         }
         
-        $sql = sprintf('SELECT * FROM matches AS M LEFT JOIN players AS P ON M.player1_id=P.player_id WHERE M.competition_id=%s AND stage="%s" ORDER BY game_index', $competition, $round);
+        $sql = sprintf('SELECT * FROM matches AS M LEFT JOIN players AS P ON M.player1_id=P.player_id LEFT JOIN users AS U ON P.user_id=U.user_id WHERE M.competition_id=%s AND stage="%s" ORDER BY game_index', $competition, $round);
         $result = $conn->query($sql);
         while ($row = $result->fetch_assoc()) {
             $game_index = $row["game_index"];
             $teams[$game_index-1]["id"] = $row["player1_id"];
             $teams[$game_index-1]["user_id"] = $row["user_id"];
             $teams[$game_index-1]["name"] = $row["player_name"];
+            $teams[$game_index-1]["group_alias"] = $row["group_alias"];
             if ($teams[$game_index-1]["score"] == "") $teams[$game_index-1]["score"] = 0;
             $teams[$game_index-1]["score"] += $row["score1"];
             
@@ -80,9 +81,16 @@
         <div class="col-'.$width2.' no-padding" style="height: '.$total_height.'px; vertical-align:;">';
         
         for ($i = 0; $i < $num_teams; $i++) {
+            if ($teams[$i]["group_alias"] == "" || strpos($teams[$i]["name"], $teams[$i]["group_alias"]) !== False || strpos($teams[$i]["group_alias"], $teams[$i]["name"]) !== False) {
+                $display_name = $teams[$i]["name"];
+            }
+            else {
+                $display_name = $teams[$i]["name"].' ('.$teams[$i]["group_alias"].')';
+                if (strlen($display_name) > 10) $display_name = $teams[$i]["group_alias"];
+            }
             echo '
             <div style="width: 100%; height: '.$height.'px; text-align: right; position: relative; cursor: pointer; color: '.(($uid!=0&&$teams[$i]["user_id"]==$uid)?$highligh_color:"black").'; font-weight: '.(($uid!=0&&$teams[$i]["user_id"]==$uid)?"bold":"normal").';" onclick="open_knockout_match_modal(\''.$round.'\', '.(-$i-1).');">
-                <div style="margin: 0; position: absolute; top: 50%; right: 0%; transform: translate(0%, -50%); font-size: 12px; width: 100%; min-height: 20px; border: 1px solid black;">'.$teams[$i]["name"].'</div>
+                <div style="margin: 0; position: absolute; top: 50%; right: 0%; transform: translate(0%, -50%); font-size: 12px; width: 100%; min-height: 20px; border: 1px solid black;">'.$display_name.'</div>
             </div>';
         }
         
@@ -141,13 +149,14 @@
             $width = 21;
         }
 
-        $teams = array(array("id"=>"", "name"=>"", "score"=>"", "p_score"=>""), array("id"=>"", "name"=>"", "score"=>"", "p_score"=>""));
+        $teams = array(array("id"=>"", "user_id"=>"", "group_alias"=>"", "name"=>"", "score"=>"", "p_score"=>""), array("id"=>"", "user_id"=>"", "group_alias"=>"", "name"=>"", "score"=>"", "p_score"=>""));
         
-        $sql = sprintf('SELECT player1_id, P1.player_name AS name1,P1.user_id AS user_id1,score1,extra_score1,penalty_score1,player2_id,P2.player_name AS name2,P2.user_id AS user_id2,score2,extra_score2,penalty_score2 FROM matches AS M LEFT JOIN players AS P1 ON M.player1_id=P1.player_id LEFT JOIN players AS P2 ON M.player2_id=P2.player_id WHERE M.competition_id=%s AND stage="%s" ORDER BY game_index', $competition, $final_round_name);
+        $sql = sprintf('SELECT player1_id, U1.group_alias AS group_alias1, P1.player_name AS name1,P1.user_id AS user_id1,score1,extra_score1,penalty_score1,player2_id, U2.group_alias AS group_alias2, P2.player_name AS name2,P2.user_id AS user_id2,score2,extra_score2,penalty_score2 FROM matches AS M LEFT JOIN players AS P1 ON M.player1_id=P1.player_id LEFT JOIN users AS U1 ON P1.user_id=U1.user_id LEFT JOIN players AS P2 ON M.player2_id=P2.player_id LEFT JOIN users AS U2 ON P2.user_id=U2.user_id WHERE M.competition_id=%s AND stage="%s" ORDER BY game_index', $competition, $final_round_name);
         $result = $conn->query($sql);
         while ($row = $result->fetch_assoc()) {
             $teams[0]["id"] = $row["player1_id"];
             $teams[0]["user_id"] = $row["user_id1"];
+            $teams[0]["group_alias"] = $row["group_alias1"];
             $teams[0]["name"] = $row["name1"];
             if ($teams[0]["score"] == "") $teams[0]["score"] = 0;
             $teams[0]["score"] += $row["score1"];
@@ -155,6 +164,7 @@
             $teams[0]["p_score"] = $row["penalty_score1"];
             $teams[1]["id"] = $row["player2_id"];
             $teams[1]["user_id"] = $row["user_id2"];
+            $teams[1]["group_alias"] = $row["group_alias2"];
             $teams[1]["name"] = $row["name2"];
             if ($teams[1]["score"] == "") $teams[1]["score"] = 0;
             $teams[1]["score"] += $row["score2"];
@@ -180,13 +190,28 @@
         }
         if ($teams[0]["p_score"] != "") $score1 = $score1.' ('.$teams[0]["p_score"].')';
         if ($teams[1]["p_score"] != "") $score2 = $score2.' ('.$teams[1]["p_score"].')';
-        
+
+        // display names for two players in final
+        if ($teams[0]["group_alias"] == "" || strpos($teams[0]["name"], $teams[0]["group_alias"]) !== False || strpos($teams[0]["group_alias"], $teams[0]["name"]) !== False) {
+            $display_name0 = $teams[0]["name"];
+        }
+        else {
+            $display_name0 = $teams[0]["name"].' ('.$teams[0]["group_alias"].')';
+            if (strlen($display_name0) > 10) $display_name = $teams[0]["group_alias"];
+        }
+        if ($teams[1]["group_alias"] == "" || strpos($teams[1]["name"], $teams[1]["group_alias"]) !== False || strpos($teams[1]["group_alias"], $teams[1]["name"]) !== False) {
+            $display_name1 = $teams[1]["name"];
+        }
+        else {
+            $display_name1 = $teams[1]["name"].' ('.$teams[1]["group_alias"].')';
+            if (strlen($display_name1) > 10) $display_name1 = $teams[1]["group_alias"];
+        }
         
         echo '
         <div class="col-'.$width.' no-padding" style="height: '.$total_height.'px; vertical-align: top;" onclick="open_knockout_match_modal(\'final\', 1);">
             <div style="width: 100%; height: 160px;"></div>
             <div style="width: 100%; height: 40px; text-align: right; position: relative; cursor: pointer; color: '.(($uid!=0&&$teams[0]["user_id"]==$uid)?$highligh_color:"black").'; font-weight: '.(($uid!=0&&$teams[0]["user_id"]==$uid)?"bold":"normal").';">
-                <div style="margin: 0; position: absolute; top: 50%; right: 0%; transform: translate(0%, -50%); font-size: 12px; width: 100%; min-height: 20px; border: 1px solid black;">'.$teams[0]["name"].'</div>
+                <div style="margin: 0; position: absolute; top: 50%; right: 0%; transform: translate(0%, -50%); font-size: 12px; width: 100%; min-height: 20px; border: 1px solid black;">'.$display_name0.'</div>
             </div>
             <div style="width: 100%; height: 25px; text-align: right;">'.$score1.'</div>
             <div style="width: 100%; height: 270px; text-align: center; position: relative; cursor: pointer;">
@@ -195,7 +220,7 @@
             </div>
             <div style="width: 100%; height: 25px; text-align: right;">'.$score2.'</div>
             <div style="width: 100%; height: 40px; text-align: right; position: relative; cursor: pointer; color: '.(($teams[1]["user_id"]==$uid)?$highligh_color:"black").'; font-weight: '.(($teams[1]["user_id"]==$uid)?"bold":"normal").';">
-                <div style="margin: 0; position: absolute; top: 50%; right: 0%; transform: translate(0%, -50%); font-size: 12px; width: 100%; min-height: 20px; border: 1px solid black;">'.$teams[1]["name"].'</div>
+                <div style="margin: 0; position: absolute; top: 50%; right: 0%; transform: translate(0%, -50%); font-size: 12px; width: 100%; min-height: 20px; border: 1px solid black;">'.$display_name1.'</div>
             </div>
             <div style="width: 100%; height: 160px;"></div>
         </div>';

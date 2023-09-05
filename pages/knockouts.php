@@ -90,7 +90,7 @@ if ($competition_id == 3) {
 
 
 
-if ($competition_id == 5 || $competition_id == 6) {
+if ($competition_id == 5 || $competition_id == 6 || $competition_id == 7) {
 	include("pages/knockouts/round.php");
 	include("pages/knockouts/games.php");
 

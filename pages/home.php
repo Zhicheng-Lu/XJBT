@@ -1,7 +1,7 @@
-<br><br><br><br><br>
+<br><br><br><br>
 
 <div class="section">
-    <div class="container" style="text-align: center; position: sticky; top: 0; z-index: 9000;">
+    <div class="container" style="text-align: center; position: sticky; top: 0; z-index: 9998;">
         <?php
         if ($user["user_id"] == "") {
             echo '
@@ -12,6 +12,8 @@
             <input type="hidden" name="tab" value="home">
             <input type="hidden" name="lang" value="<?php echo $lang ?>">
             <br>
+            
+            <!-- button for select user -->
             <div class="row justify-content-center">
                 <div class="col-xl-30 col-60">
                     <select name="uid" style="width: 100%;" onchange="this.form.submit();">
@@ -23,7 +25,8 @@
                             while ($row = $results->fetch_assoc()) {
                                 $selected = ($uid==$user["user_id"])?" selected":"";
                                 echo sprintf('
-                        <option value="%s"%s>%s</option>', $row["user_id"], $selected, $row["name"]);
+                        <option value="%s"%s>%s</option>
+                        <option disabled>-------------------------</option>', $row["user_id"], $selected, $row["name"]);
                             }
                         }
 
@@ -32,11 +35,13 @@
                         while ($row = $results->fetch_assoc()) {
                             $selected = ($uid==$row["user_id"])?" selected":"";
                             echo sprintf('
-                        <option value="%s"%s>%s</option>', $row["user_id"], $selected, $row["name"]);
+                        <option value="%s"%s>%s (%s)</option>', $row["user_id"], $selected, $row["name"], $row["group_alias"]);
                         }
                         ?>
                     </select>
                 </div>
+
+                <!-- button for select competition -->
                 <div class="col-xl-30 col-60">
                     <select name="competition_id" style="width: 100%;" onchange="this.form.submit();">
                         <option value="0"<?php echo ($competition_id==0)? " selected":"" ?>><-- <?php echo $dict["all_competitions"][$lang] ?> --></option>

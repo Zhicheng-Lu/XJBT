@@ -1,3 +1,16 @@
+<?php
+if ($competition_id == 1 || $competition_id == 5 || $competition_id == 6 || $competition_id == 7) {
+    $advanced = [$dict["advanced"][$lang], $dict["advanced"][$lang], $dict["advanced"][$lang], $dict["advanced"][$lang]];
+}
+else if ($competition_id == 2) {
+    $advanced = [$dict["advanced"][$lang], $dict["advanced"][$lang]];
+}
+else if ($competition_id == 3) {
+    $advanced = [$dict["winners_group"][$lang], $dict["winners_group"][$lang], $dict["winners_group"][$lang], $dict["winners_group"][$lang],
+                $dict["eliminated_group"][$lang], $dict["eliminated_group"][$lang], $dict["eliminated_group"][$lang], $dict["eliminated_group"][$lang]];
+}
+?>
+
 <div class="row">
     <?php
     $sql = sprintf('SELECT MAX(group_index) AS num_groups FROM players WHERE competition_id=%s', $competition_id);
@@ -38,12 +51,12 @@
             </tr>';
         
         $players = array();  
-        $sql = sprintf('SELECT * FROM players WHERE competition_id=%s AND (group_index='.$group_index.' OR group_index='.(-2-$group_index).')', $competition_id);
+        $sql = sprintf('SELECT * FROM players AS P LEFT JOIN users AS U ON P.user_id=U.user_id WHERE P.competition_id=%s AND (P.group_index='.$group_index.' OR P.group_index='.(-2-$group_index).')', $competition_id);
         $result = $conn->query($sql);
         while ($row = $result->fetch_assoc()) {
             $eaid = $row["ea_id"];
             $player_name = $row["player_name"];
-            array_push($players, array("player_id"=>$row["player_id"], "user_id"=>$row["user_id"], "eaid"=>$eaid, "player_name"=>$player_name, "group_index"=>$row["group_index"], "win"=>0, "draw"=>0, "loss"=>0, "goal"=>0, "concede"=>0));
+            array_push($players, array("player_id"=>$row["player_id"], "user_id"=>$row["user_id"], "group_alias"=>$row["group_alias"], "eaid"=>$eaid, "player_name"=>$player_name, "group_index"=>$row["group_index"], "win"=>0, "draw"=>0, "loss"=>0, "goal"=>0, "concede"=>0));
         }
 
         foreach ($players AS $player_index=>$player) {
@@ -93,14 +106,14 @@
             if ($player["group_index"] == $group_index) {
                 echo '
             <tr style="color: '.(($uid!=0&&$uid==$player["user_id"])?$highligh_color:"black").'; font-weight: '.(($uid!=0&&$uid==$player["user_id"])?"bold":"normal").';">
-                <td style="cursor: pointer;" onclick="alert(\''.$player["eaid"].'\');">'.$player["player_name"].' ('.$player["eaid"].')</td>
+                <td style="cursor: pointer;" onclick="alert(\''.$player["eaid"].'\');">'.$player["player_name"].' ('.$player["group_alias"].') ['.$player["eaid"].']</td>
                 <td style="text-align: center;">'.$player["win"].'</td>
                 <td style="text-align: center;">'.$player["draw"].'</td>
                 <td style="text-align: center;">'.$player["loss"].'</td>
                 <td style="text-align: center;">'.$player["goal"].'</td>
                 <td style="text-align: center;">'.$player["concede"].'</td>
                 <td style="text-align: center;">'.($player["goal"]-$player["concede"]).'</td>
-                <td style="text-align: center;">'.(3*$player["win"]+$player["draw"]).'</td>
+                <td style="text-align: center; position: relative;">'.(3*$player["win"]+$player["draw"]).(isset($advanced[$player_index])?'<span style="position: absolute; right:0px; top: 0px; font-size: 6pt; background-color: #04AF70; color: white;">'.$advanced[$player_index].'</span>':"").'</td>
             </tr>';
             }
         }
@@ -131,18 +144,18 @@
         <div class="row">';
         
         $players = array();    
-        $sql = sprintf('SELECT * FROM players WHERE competition_id=%s AND group_index=%s', $competition_id, $group_index);
+        $sql = sprintf('SELECT * FROM players AS P LEFT JOIN users AS U ON P.user_id=U.user_id WHERE P.competition_id=%s AND P.group_index=%s', $competition_id, $group_index);
         $result = $conn->query($sql);
         while ($row = $result->fetch_assoc()) {
             $eaid = $row["ea_id"];
             $player_name = $row["player_name"];
-            if ($row["user_id"] == $uid) array_unshift($players, array("player_id"=>$row["player_id"], "user_id"=>$row["user_id"], "eaid"=>$eaid, "player_name"=>$player_name));
-            else array_push($players, array("player_id"=>$row["player_id"], "user_id"=>$row["user_id"], "eaid"=>$eaid, "player_name"=>$player_name));
+            if ($row["user_id"] == $uid) array_unshift($players, array("player_id"=>$row["player_id"], "user_id"=>$row["user_id"], "group_alias"=>$row["group_alias"], "eaid"=>$eaid, "player_name"=>$player_name));
+            else array_push($players, array("player_id"=>$row["player_id"], "user_id"=>$row["user_id"], "group_alias"=>$row["group_alias"], "eaid"=>$eaid, "player_name"=>$player_name));
         }
 
         foreach($players as $player_index1=>$player1) {
             echo '
-            <div class="col-120" style="margin-top: 20px; color: '.(($uid!=0&&$uid==$player1["user_id"])?$highligh_color:"black").'"><b>'.$player1["player_name"].'</b></div>';
+            <div class="col-120" style="margin-top: 20px; color: '.(($uid!=0&&$uid==$player1["user_id"])?$highligh_color:"black").'"><b>'.$player1["player_name"].' ('.$player1["group_alias"].')</b></div>';
             foreach($players as $player_index2=>$player2) {
                 if ($player_index1 != $player_index2) {
                     $score1 = "";
@@ -153,14 +166,33 @@
                         $score1 = $row["score1"];
                         $score2 = $row["score2"];
                     }
+
+                    if ($user["user_id"] == 1 || (($user["user_id"] == $player1["user_id"] || $user["user_id"] == $player2["user_id"]) && $competition_status == "groups")) {
+                        $eligible = True;
+                    }
+                    else $eligible = False;
+
+                    if ($player1["group_alias"] == "" || strpos($player1["player_name"], $player1["group_alias"]) !== False || strpos($player1["group_alias"], $player1["player_name"]) !== False) {
+                        $display_name1 = $player1["player_name"];
+                    }
+                    else {
+                        $display_name1 = $player1["player_name"].' ('.$player1["group_alias"].')';
+                    }
+                    if ($player2["group_alias"] == "" || strpos($player2["player_name"], $player2["group_alias"]) !== False || strpos($player2["group_alias"], $player2["player_name"]) !== False) {
+                        $display_name2 = $player2["player_name"];
+                    }
+                    else {
+                        $display_name2 = $player2["player_name"].' ('.$player2["group_alias"].')';
+                    }
+
                     echo '
-            <div class="col-lg-60 col-120" style="cursor: pointer;" onclick="open_match_modal('.$player1["player_id"].', '.$player2["player_id"].')">
+            <div class="col-lg-60 col-120" style="cursor: '.($eligible?"pointer":"auto").';"'.($eligible?' onclick="open_match_modal('.$player1["player_id"].', '.$player2["player_id"].')"':"").'>
                 <div class="row">
-                    <div class="col-50" style="text-align: right; padding-left: 4px; padding-right: 4px;">'.$player1["player_name"].'</div>
+                    <div class="col-50" style="text-align: right; padding-left: 4px; padding-right: 4px;'.($eligible?' text-decoration: underline;':"").'">'.$display_name1.'</div>
                     <div class="col-8 no-padding" style="text-align: center;">'.$score1.'</div>
                     <div class="col-4 no-padding" style="text-align: center;">-</div>
                     <div class="col-8 no-padding" style="text-align: center;">'.$score2.'</div>
-                    <div class="col-50" style="text-align: left; padding-left: 4px; padding-right: 4px;">'.$player2["player_name"].'</div>
+                    <div class="col-50" style="text-align: left; padding-left: 4px; padding-right: 4px;'.($eligible?' text-decoration: underline;':"").'">'.$display_name2.'</div>
                 </div>
             </div>';
 
@@ -174,7 +206,7 @@
                         $score2 = $row["score2"];
                     }
                     echo '
-            <div class="col-lg-60 col-120" style="cursor: pointer;" onclick="open_match_modal('.$player2["player_id"].', '.$player1["player_id"].')">
+            <div class="col-lg-60 col-120" style="cursor: pointer;">
                 <div class="row">
                     <div class="col-50" style="text-align: right; padding-left: 4px; padding-right: 4px;">'.$player2["player_name"].'</div>
                     <div class="col-8 no-padding" style="text-align: center;">'.$score1.'</div>
@@ -190,13 +222,25 @@
         echo '
         </div>
     </div>';
-    
-    
-    
-        
     }
     ?>
 </div>
+
+<form action="requests/groups/add_group_match.php" method="post">
+    <div id="match_modal" class="modal" style="top: 5%; z-index: 9999;">
+        <div class="modal-content col-xxl-40 offset-xxl-40 col-xl-60 offset-xl-30 col-lg-80 offset-lg-20 col-md-100 offset-md-10">
+            <div class="modal-header">
+                <span class="close" onclick="close_match_modal()">&times;</span>
+            </div>
+            <div class="modal-body" id="match_modal_body">
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button style="height: 40px; border-radius: 5px; font-size: 20px; background-color: white; width: 40%;">确认</button>
+            </div>
+        </div>
+    </div>
+</form>
+
 
 <?php
 function cmp($p1, $p2) {
@@ -211,3 +255,22 @@ function cmp($p1, $p2) {
     return (3*$p2["win"]+$p2["draw"]) - (3*$p1["win"]+$p1["draw"]);
 }
 ?>
+
+<script type="text/javascript">
+    function open_match_modal(player1, player2) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("match_modal_body").innerHTML = xhttp.responseText;
+                document.getElementById("match_modal").style.display = "block";
+            }
+        };
+        xhttp.open("POST", "requests/groups/group_match_modal_body.php", true);
+        xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhttp.send("competition_id=<?php echo $competition_id; ?>&uid=<?php echo $uid; ?>&lang=<?php echo $lang;?>&player1=" + player1 + "&player2=" + player2);
+    }
+    
+    function close_match_modal() {
+        document.getElementById("match_modal").style.display = "none";
+    }
+</script>
