@@ -179,17 +179,6 @@
         
         $score1 = $teams[0]["score"];
         $score2 = $teams[1]["score"];
-        $win_name = "";
-        if ($score1 !== "" && $score2 !== "") {
-            if ($teams[0]["score"] > $teams[1]["score"] || $teams[0]["p_score"] > $teams[1]["p_score"]) {
-                $win_name = $teams[0]["name"];
-            }
-            else {
-                $win_name = $teams[1]["name"];
-            }
-        }
-        if ($teams[0]["p_score"] != "") $score1 = $score1.' ('.$teams[0]["p_score"].')';
-        if ($teams[1]["p_score"] != "") $score2 = $score2.' ('.$teams[1]["p_score"].')';
 
         // display names for two players in final
         if ($teams[0]["group_alias"] == "" || strpos($teams[0]["name"], $teams[0]["group_alias"]) !== False || strpos($teams[0]["group_alias"], $teams[0]["name"]) !== False) {
@@ -197,7 +186,7 @@
         }
         else {
             $display_name0 = $teams[0]["name"].' ('.$teams[0]["group_alias"].')';
-            if (strlen($display_name0) > 10) $display_name = $teams[0]["group_alias"];
+            if (strlen($display_name0) > 10) $display_name0 = $teams[0]["group_alias"];
         }
         if ($teams[1]["group_alias"] == "" || strpos($teams[1]["name"], $teams[1]["group_alias"]) !== False || strpos($teams[1]["group_alias"], $teams[1]["name"]) !== False) {
             $display_name1 = $teams[1]["name"];
@@ -206,6 +195,18 @@
             $display_name1 = $teams[1]["name"].' ('.$teams[1]["group_alias"].')';
             if (strlen($display_name1) > 10) $display_name1 = $teams[1]["group_alias"];
         }
+
+        $win_name = "";
+        if ($score1 !== "" && $score2 !== "") {
+            if ($teams[0]["score"] > $teams[1]["score"] || $teams[0]["p_score"] > $teams[1]["p_score"]) {
+                $win_name = $display_name0;
+            }
+            else {
+                $win_name = $display_name1;
+            }
+        }
+        if ($teams[0]["p_score"] != "") $score1 = $score1.' ('.$teams[0]["p_score"].')';
+        if ($teams[1]["p_score"] != "") $score2 = $score2.' ('.$teams[1]["p_score"].')';
         
         echo '
         <div class="col-'.$width.' no-padding" style="height: '.$total_height.'px; vertical-align: top;" onclick="open_knockout_match_modal(\'final\', 1);">

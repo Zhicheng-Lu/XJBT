@@ -63,13 +63,66 @@
     <br>
     <div class="container">
         <?php
+        include("pages/knockouts/round.php");
+        include("pages/knockouts/games.php");
+        $highligh_color = "#0096FF";
         if ($competition_id == 0) {
+            $competitions = True;
             include("pages/competitions.php");
         }
         else {
+            $competitions = False;
             include("pages/competition.php");
         }
         ?>
     </div>
 </div>
 
+
+<form action="requests/groups/add_group_match.php" method="post">
+    <div id="match_modal" class="modal" style="top: 5%; z-index: 9999;">
+        <div class="modal-content col-xxl-40 offset-xxl-40 col-xl-60 offset-xl-30 col-lg-80 offset-lg-20 col-md-100 offset-md-10">
+            <div class="modal-header">
+                <span class="close" onclick="close_match_modal()">&times;</span>
+            </div>
+            <div class="modal-body" id="match_modal_body">
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button style="height: 40px; border-radius: 5px; font-size: 20px; background-color: white; width: 40%;">确认</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<?php
+function cmp($p1, $p2) {
+    if (3*$p1["win"]+$p1["draw"] == 3*$p2["win"]+$p2["draw"]) {
+        if ($p1["goal"]-$p1["concede"] == $p2["goal"]-$p2["concede"]) {
+            return $p2["goal"] - $p1["goal"];
+        }
+                            
+        return ($p2["goal"]-$p2["concede"]) - ($p1["goal"]-$p1["concede"]);
+    }
+                        
+    return (3*$p2["win"]+$p2["draw"]) - (3*$p1["win"]+$p1["draw"]);
+}
+?>
+
+<script type="text/javascript">
+    function open_match_modal(player1, player2) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("match_modal_body").innerHTML = xhttp.responseText;
+                document.getElementById("match_modal").style.display = "block";
+            }
+        };
+        xhttp.open("POST", "requests/groups/group_match_modal_body.php", true);
+        xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhttp.send("competition_id=<?php echo $competition_id; ?>&uid=<?php echo $uid; ?>&lang=<?php echo $lang;?>&player1=" + player1 + "&player2=" + player2);
+    }
+    
+    function close_match_modal() {
+        document.getElementById("match_modal").style.display = "none";
+    }
+</script>

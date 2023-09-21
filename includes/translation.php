@@ -62,6 +62,7 @@ $dict["withdraw"] = array("CHI"=>"取消报名", "ENG"=>"Withdraw");
 
 $dict["group_stage"] = array("CHI"=>"小组赛阶段", "ENG"=>"Group Stage");
 $dict["knockouts_stage"] = array("CHI"=>"淘汰赛阶段", "ENG"=>"Knockouts Stage");
+$dict["closed"] = array("CHI"=>"结束", "ENG"=>"Closed");
 $dict["modify_signup_info"] = array("CHI"=>"修改资料", "ENG"=>"Modify Info");
 $dict["advanced"] = array("CHI"=>"晋级", "ENG"=>"Adv");
 $dict["winners_group"] = array("CHI"=>"胜者组", "ENG"=>"WG");

@@ -61,8 +61,41 @@
 </div>
 
 
-
 <?php
+$sql_competitions = 'SELECT * FROM competitions ORDER BY competition_id ASC';
+$result_competitions = $conn->query($sql_competitions);
+while ($row_competitions = $result_competitions->fetch_assoc()) {
+	
+	
+	$competition_id = $row_competitions["competition_id"];
+	$competition_status = $row_competitions["competition_status"];
+
+	$flag = False;
+	$sql = sprintf('SELECT * FROM players WHERE competition_id=%s AND user_id=%s AND user_id<>0', $competition_id, $uid);
+	$result = $conn->query($sql);
+	while ($row = $result->fetch_assoc()) {
+		$flag = True;
+		$uid_group = $row["group_index"];
+	}
+
+	if ($flag) {
+		echo '
+<br>
+<h3 style="text-align: center;">'.$row_competitions["competition_name_".strtolower($lang)].'</h3>
+<br>
+<div class="row">
+	<div class="col-lg-60 col-120">';
+		include("pages/groups.php");
+		echo '
+	</div>
+	<div class="col-lg-60 col-120">';
+		include("pages/knockouts.php");
+		echo '
+	</div>
+</div>';
+	}
+}
+
 include("pages/signup_modal.php");
 
 function get_performance($conn, $competition_id, $uid, $lang) {

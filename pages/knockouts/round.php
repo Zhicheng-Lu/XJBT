@@ -1,5 +1,15 @@
     <?php
-    function knockout_round($conn, $dict, $competition, $lang, $uid, $title, $stage, $highligh_color) {
+    function knockout_round($conn, $dict, $competition, $lang, $uid, $title, $stage, $highligh_color, $competitions) {
+        if ($competitions) {
+            $flag = False;
+            $sql = sprintf('SELECT * FROM matches AS M LEFT JOIN players AS P1 ON M.player1_id=P1.player_id LEFT JOIN players AS P2 ON M.player2_id=P2.player_id WHERE M.competition_id=%s AND M.stage="%s" AND (P1.user_id=%s OR P2.user_id=%s)', $competition, $stage, $uid, $uid);
+            $result = $conn->query($sql);
+            while ($row = $result->fetch_assoc()) {
+                $flag = True;
+            }
+            if (!$flag) return;
+        }
+
         echo '
             <div class="row justify-content-center">';
             
@@ -10,7 +20,7 @@
             </div>
             <div class="row justify-content-center" style="margin-bottom: 40px;">';
             
-        games($conn, $dict, $competition, $lang, $uid, $stage, $highligh_color);
+        games($conn, $dict, $competition, $lang, $uid, $stage, $highligh_color, $competitions);
             
         echo '
             </div>';
