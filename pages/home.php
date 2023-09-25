@@ -46,7 +46,7 @@
                     <select name="competition_id" style="width: 100%;" onchange="this.form.submit();">
                         <option value="0"<?php echo ($competition_id==0)? " selected":"" ?>><-- <?php echo $dict["all_competitions"][$lang] ?> --></option>
                         <?php
-                        $sql = 'SELECT * FROM competitions ORDER BY competition_index ASC';
+                        $sql = 'SELECT * FROM competitions ORDER BY competition_id ASC';
                         $results = $conn->query($sql);
                         while ($row = $results->fetch_assoc()) {
                             $selected = ($competition_id==$row["competition_id"])?" selected":"";

@@ -8,8 +8,9 @@
 			</tr>
 
 			<?php
-			$sql1 = 'SELECT * FROM competitions ORDER BY competition_index ASC';
+			$sql1 = 'SELECT * FROM competitions ORDER BY competition_id ASC';
             $results1 = $conn->query($sql1);
+            $max_competition_id = 0;
             while ($row1 = $results1->fetch_assoc()) {
             	$text = ($lang=="ENG")?$row1["competition_name_eng"]:$row1["competition_name_chi"];
                 echo sprintf('
@@ -18,43 +19,88 @@
 
                 // close competition
             	if ($row1["competition_status"] == "closed") {
-            		$sql2 = sprintf('SELECT P.player_name FROM matches AS M LEFT JOIN players AS P ON M.player1_id=P.player_id WHERE M.competition_id=%s AND stage="champion"', $row1["competition_id"]);
+            		$sql2 = sprintf('SELECT P.player_name, P.player_id FROM matches AS M LEFT JOIN players AS P ON M.player1_id=P.player_id WHERE M.competition_id=%s AND stage="champion"', $row1["competition_id"]);
 	            	$results2 = $conn->query($sql2);
 	            	$flag = FALSE;
 	            	while ($row2 = $results2->fetch_assoc()) {
 	            		$flag = TRUE;
-	            		echo sprintf('
-	            <td style="text-align: center;">%s</td>', $row2["player_name"]);
+	            		$champion_id = $row2["player_id"];
+	            		$champion_name = $row2["player_name"];
 	            	}
-	            	if (!$flag) {
+
+	            	if ($user["user_id"] == 1) {
+            			echo '
+	            <td style="text-align: center;">
+	            	<form method="post" action="requests/modify_champion.php">
+	            		<input type="hidden" name="lang" value="'.$lang.'">
+						<input type="hidden" name="uid" value="'.$uid.'">
+						<input type="hidden" name="competition_id" value="'.$row1["competition_id"].'">
+	            		<select name="champion" onchange="this.form.submit();" style="width: 150px;">
+	            			<option value=""></option>';
+				        $sql3 = sprintf('SELECT * FROM players AS P LEFT JOIN users AS U ON P.user_id=U.user_id WHERE P.competition_id=%s', $row1["competition_id"]);
+				        $result3 = $conn->query($sql3);
+				        while ($row3 = $result3->fetch_assoc()) {
+				            echo '
+		            		<option value="'.$row3["player_id"].'"'.(($row3["player_id"]==$champion_id)?" selected":"").'>'.$row3["player_name"].' ('.$row3["group_alias"].')</option>';
+				        }
+
+				        echo '
+            			</select>
+            		</form>
+            	</td>';
+
+            			$performance = get_performance($conn, $row1["competition_id"], $uid, $lang);
+            			echo sprintf('
+	            <td style="text-align: center;">%s</td>', $performance);
+            		}
+
+	            	elseif (!$flag) {
 	            		echo '
 	            <td style="text-align: center;" colspan="2">-</td>';
 	            	}
 	            	else {
 	            		$performance = get_performance($conn, $row1["competition_id"], $uid, $lang);
 	            		echo sprintf('
-	            <td style="text-align: center;">%s</td>', $performance);
+	            <td style="text-align: center;">%s</td>
+	            <td style="text-align: center;">%s</td>', $champion_name, $performance);
 	            	}
+
+	            	$max_competition_id = $row1["competition_id"];
             	}
             	// ongoing competition
             	else if ($row1["competition_status"] == "signup") {
             		echo sprintf('
             	<td style="text-align: center;" colspan="2"><i class="fa fa-plus-circle" style="cursor: pointer;" onclick="open_signup_modal(%s, \'none\')"></i></td>', $row1["competition_id"]);
+            		$max_competition_id = -1;
             	}
             	else if ($row1["competition_status"] == "groups") {
             		echo sprintf('
             	<td style="text-align: center;" colspan="2">%s</td>', $dict["group_stage"][$lang]);
+            		$max_competition_id = -1;
             	}
             	else if ($row1["competition_status"] == "knockouts") {
             		echo sprintf('
             	<td style="text-align: center;" colspan="2">%s</td>', $dict["knockouts_stage"][$lang]);
+            		$max_competition_id = -1;
             	}
-
-            	
 
             	echo '
             </tr>';
             }
+
+            if ($max_competition_id >= 0 && $user["user_id"] == 1) {
+        		echo '
+        	<tr>
+        		<td colspan="3" style="text-align: center;">
+        			<form method="post" action="requests/create_new_competition.php">
+        				<input type="hidden" name="lang" value="'.$lang.'">
+						<input type="hidden" name="uid" value="'.$uid.'">
+        				<label style="width: 80px;">English: </label><input type="text" name="competition_name_eng" placeholder="N-th XJBT Friendlies" required /><br>
+        				<label style="width: 80px;">中文: </label><input type="text" name="competition_name_chi" placeholder="第N届XJBT杯友谊赛" required /><br>
+        				<button class="my-button">'.$dict["confirm"][$lang].'</button>
+        			</form>
+        	</tr>';
+        	}
 			?>
 		</table>
 	</div>

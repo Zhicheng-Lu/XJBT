@@ -46,10 +46,12 @@ elseif ($competition_status == "knockouts") {
 <div class="col-120" style="text-align: center; margin-bottom: 10px;"><button class="my-button" onclick="open_signup_modal(%s, \'none\');">'.$dict["modify_signup_info"][$lang].'</button></div>', $competition_id);
 	include("pages/signup_modal.php");
 	include("pages/knockouts.php");
+	echo '<br>';
 	include("pages/groups.php");
 }
 else {
-	include("pages/groups.php");
 	include("pages/knockouts.php");
+	echo '<br>';
+	include("pages/groups.php");
 }
 ?>

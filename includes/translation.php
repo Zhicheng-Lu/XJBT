@@ -67,4 +67,6 @@ $dict["modify_signup_info"] = array("CHI"=>"修改资料", "ENG"=>"Modify Info")
 $dict["advanced"] = array("CHI"=>"晋级", "ENG"=>"Adv");
 $dict["winners_group"] = array("CHI"=>"胜者组", "ENG"=>"WG");
 $dict["eliminated_group"] = array("CHI"=>"败者组", "ENG"=>"EG");
+
+$dict["confirm"] = array("CHI"=>"确认", "ENG"=>"Confirm");
 ?>
